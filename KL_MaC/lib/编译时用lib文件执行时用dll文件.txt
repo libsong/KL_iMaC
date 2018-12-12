@@ -1,0 +1,4 @@
+libeay32.lib
+libssh2.lib
+ssleay32.lib
+zlibwapi.lib

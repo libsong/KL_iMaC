@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/KL_MaC">
+        <file alias="klmac_ico">Resources/klmac.ico</file>
+        <file alias="titleclose">Resources/img/sysbutt/close.png</file>
+        <file alias="titlemax">Resources/img/sysbutt/max.png</file>
+        <file alias="titlemin">Resources/img/sysbutt/min.png</file>
+        <file alias="set">Resources/img/sysbutt/setting.png</file>
+        <file>Resources/img/load/loading.png</file>
+        <file>Resources/img/sysbutt/pwr_switch.png</file>
+    </qresource>
+</RCC>
