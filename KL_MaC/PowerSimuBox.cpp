@@ -540,6 +540,8 @@ void macPs::actDeal(bool)
 			return;
 		}
 
+		Delay_MSec_Suspend(1);
+
 		rv = uSocket->writeDatagram(m_relayDataAct, m_relayDataAct.length(), QHostAddress(IP), Port);
 		if (rv != m_relayDataAct.length())
 		{

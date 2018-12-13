@@ -654,6 +654,8 @@ void macHighValtage::ResZAct()
 		relay_data[i] = 0xbe;
 	}
 
+	Delay_MSec_Suspend(1);
+
 	relay_data[8] = COMM_CMD_RELAY_ACTIVE;
 	relay_data[9] = 0x1;//len
 
@@ -793,6 +795,8 @@ void macHighValtage::ResFAct()
 	{
 		relay_data[i] = 0xbe;
 	}
+
+	Delay_MSec_Suspend(1);
 
 	relay_data[8] = COMM_CMD_RELAY_ACTIVE;
 	relay_data[9] = 0x1;//len
@@ -947,6 +951,8 @@ void macHighValtage::relayactive()
 	{
 		relay_data[i] = 0xbe;
 	}
+
+	Delay_MSec_Suspend(1);
 
 	relay_data[8] = COMM_CMD_RELAY_ACTIVE;
 	relay_data[9] = 0x1;//len

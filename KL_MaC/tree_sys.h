@@ -60,6 +60,7 @@ private:
 	int				remoteleaf_cnt;
 	QTreeWidgetItem *m_remoteleaf[REMOTELEAFMAX] = { NULL };	
 	McuInfo_t		*m_leafinfo[REMOTELEAFMAX] = { NULL };
+	bool			m_bLeafIcon[REMOTELEAFMAX] = { false };
 
 protected:
 	void mouseReleaseEvent(QMouseEvent *event);

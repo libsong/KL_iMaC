@@ -13,7 +13,7 @@ macMainWidget::macMainWidget(QWidget *parent)
 
 	//title
 	title_widget = new macTitleWidget();
-	title_widget->setFixedHeight(50);
+	title_widget->setFixedHeight(40);
 	installEventFilter(title_widget);
 	setWindowTitle("KL iMaC - interface Manager & Control");
 	setWindowIcon(QIcon(":/KL_MaC/klmac_ico"));
@@ -42,7 +42,7 @@ macMainWidget::macMainWidget(QWidget *parent)
 	
 	//信息显示窗
 	m_dis = new QTextBrowser;
-	m_dis->setFixedHeight(150);
+	m_dis->setFixedHeight(100);
 	m_dis->moveCursor(QTextCursor::End);
 	m_dis->verticalScrollBar()->setValue(m_dis->verticalScrollBar()->maximum());//滚动条最底
 	m_dis->document()->setMaximumBlockCount(2000); //设置最大行数

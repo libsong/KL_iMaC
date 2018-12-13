@@ -1,5 +1,6 @@
 #include "we_types.h"
 #include <QByteArray>
+#include <QTime>
 
 //https://blog.csdn.net/fantasker/article/details/73199267
 void stringToHtmlFilter(QString &str)
@@ -23,6 +24,18 @@ void stringToHtml(QString &str, QColor crl)
 	array.append(crl.blue());
 	QString strC(array.toHex());
 	str = QString("<span style=\" color:#%1;\">%2</span>").arg(strC).arg(str);
+}
+
+void Delay_MSec_Suspend(unsigned int msec)
+{
+
+	QTime _Timer = QTime::currentTime();
+
+	QTime _NowTimer;
+	do {
+		_NowTimer = QTime::currentTime();
+	} while (_Timer.msecsTo(_NowTimer) <= msec);
+
 }
 
 

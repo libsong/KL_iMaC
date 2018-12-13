@@ -7,5 +7,11 @@
         <file alias="set">Resources/img/sysbutt/setting.png</file>
         <file>Resources/img/load/loading.png</file>
         <file>Resources/img/sysbutt/pwr_switch.png</file>
+        <file alias="net_off">Resources/img/treeflick/net_off.png</file>
+        <file alias="net_on">Resources/img/treeflick/net_on.png</file>
+        <file alias="local_sys">Resources/img/treeflick/localsys.png</file>
+        <file alias="remote_sys">Resources/img/treeflick/remotesys.png</file>
+        <file alias="local_inf">Resources/img/treeflick/inf.png</file>
+        <file alias="net_link">Resources/img/treeflick/net_link.png</file>
     </qresource>
 </RCC>

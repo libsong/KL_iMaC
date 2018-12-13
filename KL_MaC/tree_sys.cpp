@@ -11,7 +11,7 @@ macTreeSys::macTreeSys(QTreeWidget *parent)
 	: QTreeWidget(parent)
 {
 	//setFixedHeight(500);
-	setMaximumHeight(500);
+	setMinimumHeight(500);
 	setFixedWidth(150);
 	setStyleSheet("background-color:rgb(80,194,194);");
 	setHeaderHidden(true);
@@ -24,12 +24,15 @@ macTreeSys::macTreeSys(QTreeWidget *parent)
 
 	tmp = codec->toUnicode("本地系统");
 	m_local = new QTreeWidgetItem(this, QStringList(tmp));
+	m_local->setIcon(0, QIcon(":/KL_MaC/local_sys"));
 		tmp = codec->toUnicode("本地信息");
 		m_SysInfoLeaf = new QTreeWidgetItem(m_local, QStringList(tmp));
+		m_SysInfoLeaf->setIcon(0, QIcon(":/KL_MaC/local_inf"));
 		m_SysInfoLeaf->setToolTip(0, tmp);
 
 	tmp = codec->toUnicode("远程系统");
 	m_remote = new QTreeWidgetItem(this, QStringList(tmp));
+	m_remote->setIcon(0, QIcon(":/KL_MaC/remote_sys"));
 	remoteleaf_cnt = 0;
 
 	connect(this, SIGNAL(itemClicked(QTreeWidgetItem*, int)),\
@@ -299,8 +302,9 @@ void macTreeSys::MakeRemoteLeaf(void * val)
 			memset(name_tmp, 0, 128);
 			sprintf(name_tmp, "信号切换箱");
 		}
-
+		
 		m_remoteleaf[remoteleaf_cnt] = new QTreeWidgetItem(m_remote, QStringList(weChinese2LocalCode(name_tmp)));
+		m_remoteleaf[remoteleaf_cnt]->setIcon(0, QIcon(":/KL_MaC/net_on"));
 		m_remoteleaf[remoteleaf_cnt]->setToolTip(0, weChinese2LocalCode(name_tmp) + weChinese2LocalCode(",双击可重命名"));
 		m_remoteleaf[remoteleaf_cnt]->setFlags(m_remoteleaf[remoteleaf_cnt]->flags() | Qt::ItemIsEditable);
 
@@ -314,6 +318,26 @@ void macTreeSys::MakeRemoteLeaf(void * val)
 				QString uid1 = QString::number(tmp.mcuUID[1], 10);
 				QString uid2 = QString::number(tmp.mcuUID[2], 10);
 				QString mapKey = uid0 + uid1 + uid2;
+
+				//tree 图标闪烁
+				uid0 = QString::number(m_leafinfo[i]->mcuUID[0], 10);
+				uid1 = QString::number(m_leafinfo[i]->mcuUID[1], 10);
+				uid2 = QString::number(m_leafinfo[i]->mcuUID[2], 10);
+				QString leafUid = uid0 + uid1 + uid2;
+				if (leafUid == mapKey)
+				{
+					//网络连接闪烁图标
+					if (m_bLeafIcon[i])
+					{
+						m_remoteleaf[i]->setIcon(0, QIcon(":/KL_MaC/net_on"));
+					}
+					else
+					{
+						m_remoteleaf[i]->setIcon(0, QIcon(":/KL_MaC/net_link"));
+					}
+					m_bLeafIcon[i] = !m_bLeafIcon[i];					
+				}
+
 				std::map<QString,int>::iterator key = mapRemoteLeaf.find(mapKey);
 				if (key == mapRemoteLeaf.end())
 				{
@@ -360,6 +384,7 @@ void macTreeSys::MakeRemoteLeaf(void * val)
 					memcpy(m_leafinfo[remoteleaf_cnt], &tmp, sizeof(McuInfo_t));
 
 					m_remoteleaf[remoteleaf_cnt] = new QTreeWidgetItem(m_remote, QStringList(weChinese2LocalCode(name_tmp)));
+					m_remoteleaf[remoteleaf_cnt]->setIcon(0, QIcon(":/KL_MaC/net_on"));
 					m_remoteleaf[remoteleaf_cnt]->setToolTip(0, weChinese2LocalCode(name_tmp) + weChinese2LocalCode(",双击可重命名"));
 					m_remoteleaf[remoteleaf_cnt]->setFlags(m_remoteleaf[remoteleaf_cnt]->flags() | Qt::ItemIsEditable);
 

@@ -70,4 +70,5 @@ union  u8Tofloat
 extern QString weChinese2LocalCode(char *x);
 extern void stringToHtmlFilter(QString &str);
 extern void stringToHtml(QString &str, QColor crl);
+extern void Delay_MSec_Suspend(unsigned int msec);
 
