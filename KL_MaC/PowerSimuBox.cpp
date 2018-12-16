@@ -582,7 +582,7 @@ void macPs::receiveMul()
 	{
 		while (uSocket->hasPendingDatagrams())
 		{
-			//qDebug() << "udp mulcast hasPendingDatagrams ...";
+			g_disText << "udp hasPendingDatagrams ...";
 
 			quint32 datalen = uSocket->pendingDatagramSize();
 			QByteArray datagram;

@@ -8,6 +8,7 @@ QList<QString> g_disText;
 macMainWidget::macMainWidget(QWidget *parent)
 	: macShadowWidget(parent)
 {
+
 	setMinimumSize(900, 600);
 	setWindowIcon(QIcon(":/KL_MaC/klmac_ico"));
 
@@ -20,8 +21,6 @@ macMainWidget::macMainWidget(QWidget *parent)
 
 	//控制操作等,多页面切换
 	showStack = new QStackedWidget(this);
-	//int firstAreaHight = (this->height() - title_widget->height()) / 4 * 3;
-	//showStack->setFixedHeight(firstAreaHight);
 
 	//本机信息显示表格
 	localInfo = new macLocalInfo();
@@ -47,10 +46,6 @@ macMainWidget::macMainWidget(QWidget *parent)
 	m_dis->verticalScrollBar()->setValue(m_dis->verticalScrollBar()->maximum());//滚动条最底
 	m_dis->document()->setMaximumBlockCount(2000); //设置最大行数
 
-	/*SubThread *t = new SubThread;
-	SubThread3* t3 = new SubThread3(this);
-	connect(t, SIGNAL(giveDis(QString)), this, SLOT(disTextBrower(QString)));
-	t3->start();*/
 
 	//界面布局等
 	QHBoxLayout *pHlayout = new QHBoxLayout();
@@ -64,8 +59,6 @@ macMainWidget::macMainWidget(QWidget *parent)
 	pLayout->addSpacing(5);
 
 	setLayout(pLayout);
-
-	g_disText << weChinese2LocalCode("KL iMaC Start .");
 }
 
 macMainWidget::~macMainWidget()
@@ -270,63 +263,3 @@ void disTextBrowerTh::run()
 		msleep(10);
 	}
 }
-
-// slot function connected to obj's someSignal 
-void SubThread::someSlot()
-{
-	emit this->giveDis("thread ");
-
-	QString msg;
-	msg.append(this->metaObject()->className());
-	msg.append("::obj's thread is ");
-	if (obj->thread() == qApp->thread())
-	{
-		msg.append("MAIN thread;");
-	}
-	else if (obj->thread() == this)
-	{
-		msg.append("SUB thread;");
-	}
-	else
-	{
-		msg.append("OTHER thread;");
-	}
-	msg.append(" someSlot executed in ");
-	if (QThread::currentThread() == qApp->thread())
-	{
-		msg.append("MAIN thread;");
-	}
-	else if (QThread::currentThread() == this)
-	{
-		msg.append("SUB thread;");
-	}
-	else
-	{
-		msg.append("OTHER thread;");
-	}
-	qDebug() << msg;
-	//quit();
-}
-
-SubThread3::SubThread3(QObject* parent)
-	: SubThread(parent)
-{
-	obj = 0;
-}
-
-// reimplement run   
-void SubThread3::run()
-{
-	obj = new SomeObject();
-	connect(obj, SIGNAL(someSignal()), this, SLOT(someSlot()));
-	/*obj->callEmitSignal();
-	exec();*/
-
-	while (1)
-	{
-		obj->callEmitSignal();
-		sleep(1);
-	}
-}
-
-

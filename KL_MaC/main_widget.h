@@ -88,55 +88,6 @@ private:
 	void run();
 };
 
-//////////////////////////////////////////////////////////////////////////
-// define Object class
-
-class SomeObject : public QObject
-{
-	Q_OBJECT
-public:
-	SomeObject(QObject* parent = 0) : QObject(parent) {}
-	void callEmitSignal()  // 用于发送信号的函数   
-	{
-		emit someSignal();
-	}
-signals:
-	void someSignal();
-};
-
-class SubThread : public QThread
-{
-	Q_OBJECT
-
-signals:
-	void giveDis(QString str);
-
-public:
-	SubThread(QObject* parent = 0) : QThread(parent) {}
-	virtual ~SubThread()
-	{
-		if (obj != NULL) delete obj;
-	}
-public slots :
-		// slot function connected to obj's someSignal   
-		void someSlot();
-public:
-	SomeObject * obj;
-};
-
-class SubThread3 : public SubThread
-{
-	Q_OBJECT
-public:
-	SubThread3(QObject* parent = 0);
-	// reimplement run   
-	void run();
-};
-
-
-
-
-
 
 
 

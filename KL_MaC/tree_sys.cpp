@@ -63,152 +63,194 @@ macTreeSys::~macTreeSys()
 
 void macTreeSys::GetLocalInfo(void)
 {
+
 	SYSTEM_INFO sysinfo;
 	GetSystemInfo(&sysinfo);
-	qDebug() << "ProcessorType : " << sysinfo.dwProcessorType;
-	qDebug() << "NumberOfProcessors : " << sysinfo.dwNumberOfProcessors;
-	qDebug() << "PageSize : " << sysinfo.dwPageSize;
-	qDebug() << "MaximumApplicationAddress : " << sysinfo.lpMaximumApplicationAddress;
-	qDebug() << "MinimumApplicationAddress : " << sysinfo.lpMinimumApplicationAddress;
 
 	MEMORYSTATUSEX statex;
 	statex.dwLength = sizeof(statex);
 	GlobalMemoryStatusEx(&statex);
-	qDebug() << "MemoryLoad : " << statex.dwMemoryLoad;
-	qDebug() << "TotalPhys : " << statex.ullTotalPhys / MB;
-	qDebug() << "AvailPhys : " << statex.ullAvailPhys / MB;
-	qDebug() << "TotalVirtual : " << statex.ullTotalVirtual / MB;
-	qDebug() << "AvailVirtual : " << statex.ullAvailVirtual / MB;
 
 	QStringList name, val;
-	name << weChinese2LocalCode("处理器类型") << weChinese2LocalCode("处理器数量") << weChinese2LocalCode("页大小") << weChinese2LocalCode("最大应用地址") << weChinese2LocalCode("最小应用地址")\
-		<< weChinese2LocalCode("已用内存") << weChinese2LocalCode("总物理内存") << weChinese2LocalCode("可用物理内存") << weChinese2LocalCode("总虚拟内存") << weChinese2LocalCode("可用虚拟内存");
-	val << QString::number(sysinfo.dwProcessorType, 10) << QString::number(sysinfo.dwNumberOfProcessors, 10)\
-		<< QString::number(sysinfo.dwPageSize, 10) << "0x" + QString::number((int)sysinfo.lpMaximumApplicationAddress, 16).toUpper()\
-		<< "0x" + QString::number((int)sysinfo.lpMinimumApplicationAddress, 16).toUpper()\
-		<< QString::number(statex.dwMemoryLoad, 10) << QString::number(statex.ullTotalPhys / MB, 10)\
-			<< QString::number(statex.ullAvailPhys / MB, 10) << QString::number(statex.ullTotalVirtual / MB, 10) << QString::number(statex.ullAvailVirtual / MB, 10);
+	name << weChinese2LocalCode("处理器类型") << weChinese2LocalCode("处理器数量")
+		<< weChinese2LocalCode("页大小") << weChinese2LocalCode("最大应用地址") 
+		<< weChinese2LocalCode("最小应用地址") << weChinese2LocalCode("已用内存") 
+		<< weChinese2LocalCode("总物理内存") << weChinese2LocalCode("可用物理内存") 
+		<< weChinese2LocalCode("总虚拟内存") << weChinese2LocalCode("可用虚拟内存");
+	val << QString::number(sysinfo.dwProcessorType, 10) << QString::number(sysinfo.dwNumberOfProcessors, 10)
+		<< QString::number(sysinfo.dwPageSize, 10) << "0x" + QString::number((int)sysinfo.lpMaximumApplicationAddress, 16).toUpper()
+		<< "0x" + QString::number((int)sysinfo.lpMinimumApplicationAddress, 16).toUpper()
+		<< QString::number(statex.dwMemoryLoad, 10) << QString::number(statex.ullTotalPhys / MB, 10)
+		<< QString::number(statex.ullAvailPhys / MB, 10) << QString::number(statex.ullTotalVirtual / MB, 10) 
+		<< QString::number(statex.ullAvailVirtual / MB, 10);
 	for (int i = 0; i < 10; i++)
 	{
 		emit GiveLocalInfo(0, i, 0, name.at(i));
 		emit GiveLocalInfo(0, i, 1, val.at(i));
 	}
 
-
-	int			cnt_cnt = 0;
-	PIP_ADAPTER_INFO pAdapter = NULL;
-	DWORD dwRetVal = 0;
-	UINT i;
-	/* variables used to print DHCP time info */
-	struct tm newtime;
-	char buffer[32];
-	errno_t we_error;
-
-	//PIP_ADAPTER_INFO结构体存储本机网卡信息,包括本地网卡、无线网卡和虚拟网卡  
-	PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO *)malloc(sizeof(IP_ADAPTER_INFO));
-	ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
-	//调用GetAdaptersInfo函数,填充pAdapterInfo指针变量，其中ulOutBufLen参数既是输入也是输出  
-	if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen) != ERROR_SUCCESS)
+	//PIP_ADAPTER_INFO结构体指针存储本机网卡信息
+	PIP_ADAPTER_INFO pIpAdapterInfo = new IP_ADAPTER_INFO();
+	//得到结构体大小,用于GetAdaptersInfo参数
+	unsigned long stSize = sizeof(IP_ADAPTER_INFO);
+	//调用GetAdaptersInfo函数,填充pIpAdapterInfo指针变量;其中stSize参数既是一个输入量也是一个输出量
+	int nRel = GetAdaptersInfo(pIpAdapterInfo, &stSize);
+	//记录网卡数量
+	int netCardNum = 0;
+	//记录每张网卡上的IP地址数量
+	int IPnumPerNetCard = 0;
+	if (ERROR_BUFFER_OVERFLOW == nRel)
 	{
-		//如果分配失败，释放后重新分配  
-		//GlobalFree(pAdapterInfo);
-		pAdapterInfo = (IP_ADAPTER_INFO *)malloc(ulOutBufLen);
+		//如果函数返回的是ERROR_BUFFER_OVERFLOW
+		//则说明GetAdaptersInfo参数传递的内存空间不够,同时其传出stSize,表示需要的空间大小
+		//这也是说明为什么stSize既是一个输入量也是一个输出量
+		//释放原来的内存空间
+		delete pIpAdapterInfo;
+		//重新申请内存空间用来存储所有网卡信息
+		pIpAdapterInfo = (PIP_ADAPTER_INFO)new BYTE[stSize];
+		//再次调用GetAdaptersInfo函数,填充pIpAdapterInfo指针变量
+		nRel = GetAdaptersInfo(pIpAdapterInfo, &stSize);
 	}
-	if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen) == NO_ERROR)
+	if (ERROR_SUCCESS == nRel)
 	{
-		while (pAdapterInfo)
+		//输出网卡信息
+		//可能有多网卡,因此通过循环去判断
+		QString nicType = "";
+		while (pIpAdapterInfo)
 		{
-			//pAdapter->Description中包含"PCI"为本地网卡，pAdapter->Type是71为无线网卡  
-			if (strstr(pAdapterInfo->Description, "PCI") > 0 || pAdapterInfo->Type == 71)
+			switch (pIpAdapterInfo->Type)
 			{
-				
-				//这里假设每个网卡只有一个IP  
-				char * ipAddress = pAdapterInfo->IpAddressList.IpAddress.String;
-				char tempIpAddress[3] = { '\0' };
-				memcpy(tempIpAddress, ipAddress, 3);
-				//只显示IP以192开头的网卡信息  
-				//if (strstr(tempIpAddress, "192"))
-				{
-					qDebug("------------------------------------------------------------\n");
-					qDebug("Adapter Name: \t%s\n", pAdapterInfo->AdapterName);
-					qDebug("Adapter Description: \t%s\n", pAdapterInfo->Description);
-					qDebug("Adapter Address: \t");
-					for (UINT i = 0; i < pAdapterInfo->AddressLength; i++)
-					{
-						qDebug("%02X%c", pAdapterInfo->Address[i],
-							i == pAdapterInfo->AddressLength - 1 ? '\n' : '-');
-					}
-					qDebug("Adapter Type: \t%d\n", pAdapterInfo->Type);
-					qDebug("IP Address: \t%s\n", pAdapterInfo->IpAddressList.IpAddress.String);
-					qDebug("IP Mask: \t%s\n", pAdapterInfo->IpAddressList.IpMask.String);
-
-					char macbuf[64] = { 0 };
-					sprintf(macbuf, "%02x:%02x:%02x:%02x:%02x:%02x", pAdapterInfo->Address[0], pAdapterInfo->Address[1], pAdapterInfo->Address[2],\
-						pAdapterInfo->Address[3], pAdapterInfo->Address[4],pAdapterInfo->Address[5]);
-					name << weChinese2LocalCode("网卡名称") << weChinese2LocalCode("网卡描述") << weChinese2LocalCode("MAC地址")\
-						<< weChinese2LocalCode("网卡类型") << weChinese2LocalCode("IP 地址") << weChinese2LocalCode("IP 掩码");
-					val << pAdapterInfo->AdapterName << pAdapterInfo->Description\
-						<< macbuf << QString::number((int)pAdapterInfo->Type, 10)\
-						<< pAdapterInfo->IpAddressList.IpAddress.String\
-						<< pAdapterInfo->IpAddressList.IpMask.String ;
-					for (int i = 10+cnt_cnt*6; i < 10 + cnt_cnt * 6 + 6; i++)
-					{
-						emit GiveLocalInfo(0, i, 0, name.at(i));
-						emit GiveLocalInfo(0, i, 1, val.at(i));
-					}
-}
+			case MIB_IF_TYPE_OTHER:
+				nicType = "OTHER";
+				break;
+			case MIB_IF_TYPE_ETHERNET:
+				nicType = "ETHERNET";
+				break;
+			case MIB_IF_TYPE_TOKENRING:
+				nicType = "TOKENRING";
+				break;
+			case MIB_IF_TYPE_FDDI:
+				nicType = "FDDI";
+				break;
+			case MIB_IF_TYPE_PPP:
+				printf("PP\n");
+				nicType = "PPP";
+				break;
+			case MIB_IF_TYPE_LOOPBACK:
+				nicType = "LOOPBACK";
+				break;
+			case MIB_IF_TYPE_SLIP:
+				nicType = "SLIP";
+				break;
+			default:
+				nicType = "Unknown";
+				break;
 			}
+			for (DWORD i = 0; i < pIpAdapterInfo->AddressLength; i++)
+				if (i < pIpAdapterInfo->AddressLength - 1)
+				{
+					printf("%02X-", pIpAdapterInfo->Address[i]);
+				}
+				else
+				{
+					printf("%02X\n", pIpAdapterInfo->Address[i]);
+				}
 
-			cnt_cnt++;
-			pAdapterInfo = pAdapterInfo->Next;
-		}
-	}
-	else
-	{
-		qDebug("Call to GetAdaptersInfo failed.\n");
-	}
-	if (pAdapterInfo)
-	{
-		GlobalFree(pAdapterInfo);
-	}
+			//可能网卡有多IP,因此通过循环去判断
+			IP_ADDR_STRING *pIpAddrString = &(pIpAdapterInfo->IpAddressList);
+			do
+			{
+				char macbuf[64] = { 0 };
+				sprintf(macbuf, "%02x:%02x:%02x:%02x:%02x:%02x", pIpAdapterInfo->Address[0], pIpAdapterInfo->Address[1], pIpAdapterInfo->Address[2], \
+					pIpAdapterInfo->Address[3], pIpAdapterInfo->Address[4], pIpAdapterInfo->Address[5]);
+				name << weChinese2LocalCode("网卡名称") 
+					<< weChinese2LocalCode("网卡描述") 
+					<< weChinese2LocalCode("网卡MAC")
+					<< weChinese2LocalCode("网卡类型") 
+					<< weChinese2LocalCode("IP 地址") 
+					<< weChinese2LocalCode("IP 掩码")
+					<< weChinese2LocalCode("IP 网关");
+				val << pIpAdapterInfo->AdapterName
+					<< pIpAdapterInfo->Description
+					<< macbuf 
+					<< nicType
+					<< pIpAdapterInfo->IpAddressList.IpAddress.String
+					<< pIpAdapterInfo->IpAddressList.IpMask.String
+					<< pIpAdapterInfo->GatewayList.IpAddress.String;
+				for (int i = 10 + netCardNum * 7; i < 10 + netCardNum * 7 + 7; i++)
+				{
+					emit GiveLocalInfo(0, i, 0, name.at(i));
+					emit GiveLocalInfo(0, i, 1, val.at(i));
+				}
 
+				pIpAddrString = pIpAddrString->Next;				
+			} while (pIpAddrString);
+
+			pIpAdapterInfo = pIpAdapterInfo->Next;
+			netCardNum++;
 #if 0
-	//net
-	QString tmp = qgetenv("USERNAME");
-	qDebug() << "User Name : " << tmp;
+			cout << "网卡数量：" << ++netCardNum << endl;
+			cout << "网卡名称：" << pIpAdapterInfo->AdapterName << endl;
+			cout << "网卡描述：" << pIpAdapterInfo->Description << endl;
+			switch (pIpAdapterInfo->Type)
+			{
+			case MIB_IF_TYPE_OTHER:
+				cout << "网卡类型：" << "OTHER" << endl;
+				break;
+			case MIB_IF_TYPE_ETHERNET:
+				cout << "网卡类型：" << "ETHERNET" << endl;
+				break;
+			case MIB_IF_TYPE_TOKENRING:
+				cout << "网卡类型：" << "TOKENRING" << endl;
+				break;
+			case MIB_IF_TYPE_FDDI:
+				cout << "网卡类型：" << "FDDI" << endl;
+				break;
+			case MIB_IF_TYPE_PPP:
+				printf("PP\n");
+				cout << "网卡类型：" << "PPP" << endl;
+				break;
+			case MIB_IF_TYPE_LOOPBACK:
+				cout << "网卡类型：" << "LOOPBACK" << endl;
+				break;
+			case MIB_IF_TYPE_SLIP:
+				cout << "网卡类型：" << "SLIP" << endl;
+				break;
+			default:
 
-	tmp = QHostInfo::localHostName();
-	qDebug() << "LocalHostName : " << tmp;
-	QHostInfo info = QHostInfo::fromName(tmp);
-	for each (QHostAddress address in info.addresses())
-	{
-		if (address.protocol() == QAbstractSocket::IPv4Protocol)
-		{
-			qDebug() << "IPv4 : " << address.toString();
-		}
-	}
-
-	qDebug() << "++++++++++++++++++++++++++++++++++";
-	foreach(QNetworkInterface netInterface, QNetworkInterface::allInterfaces())
-	{
-		//netcard name 
-		qDebug() << "Device:" << netInterface.name();
-		//mac
-		qDebug() << "Mac:" << netInterface.hardwareAddress();
-		QList<QNetworkAddressEntry> entryList = netInterface.addressEntries();
-		foreach(QNetworkAddressEntry entry, entryList)
-		{
-			//ip
-			qDebug() << "Ip addr:" << entry.ip().toString();
-			//mask
-			qDebug() << "Netmask:" << entry.netmask().toString();
-			//broad
-			qDebug() << "Broadcast:" << entry.broadcast().toString();
-		}
-	}
+				break;
+			}
+			cout << "网卡MAC地址：";
+			for (DWORD i = 0; i < pIpAdapterInfo->AddressLength; i++)
+				if (i < pIpAdapterInfo->AddressLength - 1)
+				{
+					printf("%02X-", pIpAdapterInfo->Address[i]);
+				}
+				else
+				{
+					printf("%02X\n", pIpAdapterInfo->Address[i]);
+				}
+			cout << "网卡IP地址如下：" << endl;
+			//可能网卡有多IP,因此通过循环去判断
+			IP_ADDR_STRING *pIpAddrString = &(pIpAdapterInfo->IpAddressList);
+			do
+			{
+				cout << "该网卡上的IP数量：" << ++IPnumPerNetCard << endl;
+				cout << "IP 地址：" << pIpAddrString->IpAddress.String << endl;
+				cout << "子网地址：" << pIpAddrString->IpMask.String << endl;
+				cout << "网关地址：" << pIpAdapterInfo->GatewayList.IpAddress.String << endl;
+				pIpAddrString = pIpAddrString->Next;
+			} while (pIpAddrString);
+			pIpAdapterInfo = pIpAdapterInfo->Next;
+			cout << "--------------------------------------------------------------------" << endl;
 #endif
-
-	return;
+		}
+	}
+	//释放内存空间
+	if (pIpAdapterInfo)
+	{
+		delete pIpAdapterInfo;
+	}
 }
 
 void macTreeSys::showLeafRightMouseClick(const QPoint &pos)

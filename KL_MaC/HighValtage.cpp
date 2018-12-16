@@ -401,7 +401,7 @@ void macHighValtage::SetIpChange()
 	}
 	else
 	{
-		g_disText << weChinese2LocalCode("Fiu 设备网络信息修改完成 .");
+		g_disText << weChinese2LocalCode("设备网络信息修改完成 .");
 	}
 
 	uMulSocket->leaveMulticastGroup(QHostAddress(UDPMULCASTSEND_IP));

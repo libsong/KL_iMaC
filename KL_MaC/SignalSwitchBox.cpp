@@ -96,8 +96,8 @@ macSw::macSw(QGroupBox *parent)
 
 			default:
 				int tmp = (j-1)* 8 + i;
-				strOff = "V" + QString::number(tmp, 10) + " Off";
-				strOn = "R" + QString::number(tmp, 10) + " On";
+				strOff = "R" + QString::number(tmp, 10);//off bit = 0;
+				strOn = "V" + QString::number(tmp, 10);
 				break;
 			}			
 
@@ -551,7 +551,19 @@ void macSw::actDeal(bool)
 		}
 		else
 		{
-			g_disText << weChinese2LocalCode("ÐÅºÅÇÐ»»Ïä ÐÅºÅÇÐ»»ÃüÁîÒÑ·¢ËÍ");
+			QString tmp = "";
+			for (int i = 0; i < RELAYBYTENUM; i++)
+			{
+				quint8 v = m_relayDataCfg.at(i+10);
+				QString str = QString::number(v&0xff,16);
+				if (v < 10)
+				{
+					str.insert(0, '0');
+				}
+				tmp = tmp + str +" ";
+			}
+			//QString tmp = m_relayDataCfg.toHex();
+			g_disText << weChinese2LocalCode("ÐÅºÅÇÐ»»Ïä ÐÅºÅÇÐ»»ÃüÁîÒÑ·¢ËÍ : (HEX) ") + tmp;
 		}		
 	}
 
@@ -661,7 +673,15 @@ void macSw::onPwrBtnClicked(bool checked,int idx)
 		}
 		for (int i = 0; i < RELAYBYTENUM; i++)
 		{
-			g_cSwRelayVal[i] = 0xff;
+			if (btnState)
+			{
+				g_cSwRelayVal[i] = 0xff;
+			} 
+			else
+			{
+				g_cSwRelayVal[i] = 0;
+			}
+			
 		}
 		break;
 
@@ -689,7 +709,15 @@ void macSw::onPwrBtnClicked(bool checked,int idx)
 			int j = i + Idx;
 			m_pPwr1sw[j]->mousePressEvent_WeSimu(btnState);
 		}
-		g_cSwRelayVal[Idx/9 - 1] = 0xff;
+		if (btnState)
+		{
+			g_cSwRelayVal[Idx / 9 - 1] = 0xff;
+		} 
+		else
+		{
+			g_cSwRelayVal[Idx / 9 - 1] = 0;
+		}
+		
 		break;
 
 	default:
